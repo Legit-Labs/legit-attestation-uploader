@@ -1,0 +1,71 @@
+name: Legit Attestation Uploader
+on:
+  workflow_call:
+    inputs:
+      image:
+        description: "image to which the attestation refers"
+        required: true
+        type: string
+      name:
+        description: "name of attestation to upload (e.g. provenance, legit-score), excluding the .intoto.jsonl suffix"
+        required: true
+        type: string
+      digest:
+        description: "the digest of the attestation"
+        required: true
+        type: string
+      registry:
+        description: "the registry address"
+        required: false
+        type: string
+    secrets:
+      DOCKER_USERNAME:
+        required: true
+      DOCKER_PASSWORD:
+        required: true
+
+permissions: read-all
+env:
+  SAFE_DIR: /tmp/artifact
+  ARTIFACT_NAME: ${{ inputs.name }}.intoto.jsonl
+  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+    steps:
+      - id: prepare_safe_dir
+        run: |
+          mkdir "${{ env.SAFE_DIR }}"
+    
+      - uses: actions/download-artifact@fb598a63ae348fa914e94cd0ff38f362e927b741 # v3.0.0
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: ${{ env.SAFE_DIR }}
+
+      - id: build_tool 
+        uses: actions/setup-go@268d8c0ca0432bb2cf416faae41297df9d262d7f # v3.3.0
+        with:
+          go-version: '1.19.1'
+      - run: |
+          git clone --no-checkout https://github.com/Legit-Labs/legit-registry-tools.git
+          cd legit-registry-tools
+          git checkout fad7760f9eef6932fc0c3fc5d275a11d5df31eeb # v1.0.0
+          cd cmd/legit_attestation_uploader/
+          go build -o /tmp/uploader .        
+      
+      - id: upload
+        run: |
+          username='${{ env.DOCKER_USERNAME }}'
+          password='${{ env.DOCKER_PASSWORD }}'
+          registry='${{ inputs.registry }}'
+          echo "${password}" | docker login --username "${username} --password-stdin "${registry}"
+          
+          image='${{ inputs.image }}'
+          name='${{ inputs.name }}'
+          digest='${{ inputs.digest }}'
+          path='${{ env.SAFE_DIR }}/${{ env.ARTIFACT_NAME }}'
+          /tmp/uploader -image "${image}" -name "${name}" -path "${path}" -digest "${digest}"
