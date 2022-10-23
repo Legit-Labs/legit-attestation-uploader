@@ -55,7 +55,7 @@ jobs:
       - run: |
           git clone --no-checkout https://github.com/Legit-Labs/legit-registry-tools.git
           cd legit-registry-tools
-          git checkout "${LEGIT_REGISTRY_TOOLS_COMMIT}"" # v1.0.0
+          git checkout "${LEGIT_REGISTRY_TOOLS_COMMIT}" # v1.0.0
           cd cmd/legit_attestation_uploader/
           go build -o /tmp/uploader .
       
