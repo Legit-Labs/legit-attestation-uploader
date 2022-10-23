@@ -6,13 +6,14 @@ on:
         description: "image to which the attestation refers"
         required: true
         type: string
-      name:
-        description: "name of attestation to upload (e.g. provenance, legit-score), excluding the .intoto.jsonl suffix"
-        required: true
-        type: string
       digest:
         description: "the digest of the attestation"
         required: true
+        type: string
+      name:
+        description: "name of attestation to upload (e.g. legit-provenance, legit-score), excluding the .intoto.jsonl suffix"
+        default: "legit-provenance"
+        required: false
         type: string
       registry:
         description: "the registry address"
@@ -30,6 +31,7 @@ env:
   ARTIFACT_NAME: ${{ inputs.name }}.intoto.jsonl
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
   DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+  LEGIT_REGISTRY_TOOLS_COMMIT: 5a4c24425e89ba05293d1f20d9f2fc0df18f30a2
 
 jobs:
   upload:
@@ -53,9 +55,9 @@ jobs:
       - run: |
           git clone --no-checkout https://github.com/Legit-Labs/legit-registry-tools.git
           cd legit-registry-tools
-          git checkout fad7760f9eef6932fc0c3fc5d275a11d5df31eeb # v1.0.0
+          git checkout "${LEGIT_REGISTRY_TOOLS_COMMIT}"" # v1.0.0
           cd cmd/legit_attestation_uploader/
-          go build -o /tmp/uploader .        
+          go build -o /tmp/uploader .
       
       - id: upload
         run: |
