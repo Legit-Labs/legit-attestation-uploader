@@ -64,7 +64,7 @@ jobs:
           username='${{ env.DOCKER_USERNAME }}'
           password='${{ env.DOCKER_PASSWORD }}'
           registry='${{ inputs.registry }}'
-          echo "${password}" | docker login --username "${username} --password-stdin "${registry}"
+          echo "${password}" | docker login --username "${username}" --password-stdin "${registry}"
           
           image='${{ inputs.image }}'
           name='${{ inputs.name }}'
