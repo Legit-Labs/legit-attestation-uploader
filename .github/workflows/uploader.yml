@@ -12,8 +12,7 @@ on:
         type: string
       name:
         description: "name of attestation to upload (e.g. legit-provenance, legit-score), excluding the .intoto.jsonl suffix"
-        default: "legit-provenance"
-        required: false
+        required: true
         type: string
       registry:
         description: "the registry address"
